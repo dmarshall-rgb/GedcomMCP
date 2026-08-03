@@ -611,7 +611,7 @@ def _get_events_internal(person_id: str, gedcom_ctx) -> List[Dict[str, Any]]:
                                 f"not in CUSTOM_TAG_TYPES, EVENT_TYPES, or ATTRIBUTE_TYPES; "
                                 f"surfacing generically with the raw tag as its name."
                             )
-                        event_data = decode_event_details(child_elem, tag)
+                        event_data = decode_event_details(child_elem, tag, gedcom_ctx)
                         event_data["name"] = tag_info["name"]
                         event_data["description"] = tag_info["description"]
                         event_data["person_name"] = name_str
@@ -652,7 +652,7 @@ def _get_events_internal(person_id: str, gedcom_ctx) -> List[Dict[str, Any]]:
                                         "description": f"Custom or unrecognized tag: {family_tag}",
                                     },
                                 )
-                                event_data = decode_event_details(family_child, family_tag)
+                                event_data = decode_event_details(family_child, family_tag, gedcom_ctx)
                                 event_data["name"] = tag_info["name"]
                                 event_data["description"] = tag_info["description"]
                                 event_data["person_name"] = name_str
@@ -981,7 +981,7 @@ def _get_sources_internal(
                         citation["event"] = None
                         sources.append(citation)
 
-                    elif tag in EVENT_TYPES or tag in ATTRIBUTE_TYPES:
+                    elif tag in EVENT_TYPES or tag in ATTRIBUTE_TYPES or tag.startswith("_"):
                         # Event/Attribute-level citation
                         if hasattr(child_elem, "get_child_elements"):
                             for event_child in child_elem.get_child_elements():
@@ -1000,7 +1000,7 @@ def _get_sources_internal(
                         if family_elem and hasattr(family_elem, "get_child_elements"):
                             for family_child in family_elem.get_child_elements():
                                 family_tag = family_child.get_tag()
-                                if family_tag in EVENT_TYPES:
+                                if family_tag in EVENT_TYPES or family_tag.startswith("_"):
                                     if hasattr(family_child, "get_child_elements"):
                                         for event_child in family_child.get_child_elements():
                                             if event_child.get_tag() == "SOUR":
